@@ -26,12 +26,12 @@ test('add returns the stored entry with its id and time', async () => {
   assert.ok(entry.createdAt instanceof Date);
 });
 
-test('list gives the entries oldest first', async () => {
+test('list gives the entries newest first', async () => {
   const fresh = await testDatabase();
   try {
     for (const name of ['first', 'second', 'third']) await fresh.store.add(name, `entry ${name}`);
     const names = (await fresh.store.list()).map((entry) => entry.name);
-    assert.deepEqual(names, ['first', 'second', 'third']);
+    assert.deepEqual(names, ['third', 'second', 'first']);
   } finally {
     await fresh.drop();
   }
