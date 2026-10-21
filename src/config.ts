@@ -5,7 +5,7 @@
 //   DATABASE_URL  required, for example postgres://postgres@127.0.0.1:5432/postgres
 
 export const DEFAULT_HOST = '127.0.0.1';
-// The port the deploy watcher publishes (deploy/watch.ts).
+// The port the deploy watcher publishes (deploy/watch.ts), 127.0.0.1 only.
 export const DEFAULT_PORT = 8793;
 
 // Ports refused even when asked for: 80 and 443 belong to the machine's
