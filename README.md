@@ -9,7 +9,7 @@ A web page that lists guestbook entries and adds one, on Postgres. Cleared v2's 
 
 | Route | What it does |
 | --- | --- |
-| `GET /` | The page: the entries, oldest first, then the form. |
+| `GET /` | The page: the entries, newest first, then the form. |
 | `POST /entries` | Adds an entry from the form (`name` up to 80 characters, `message` up to 500). Answers 303 to `/` when stored, or 400 with the page and the error when a field is empty or too long. Answers 415 for a body that is not a form, and 413 for a body over 16 KiB. |
 | `GET /health` | `200 {"status":"ok"}` while the database answers within 2 seconds, else `503 {"status":"unavailable"}`. |
 

@@ -52,7 +52,7 @@ test('POST /entries stores the entry and sends the visitor back to the page', as
   const response = await fetch(`${base}/entries`, form({ name: '  Grace  ', message: 'Hello <there>' }));
   assert.equal(response.status, 303);
   assert.equal(response.headers.get('location'), '/');
-  const stored = (await db.store.list()).at(-1);
+  const stored = (await db.store.list())[0];
   assert.equal(stored?.name, 'Grace');
   assert.equal(stored?.message, 'Hello <there>');
   const page = await (await fetch(`${base}/`)).text();
