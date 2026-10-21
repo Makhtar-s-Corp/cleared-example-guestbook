@@ -54,7 +54,7 @@ export function createStore(connectionString: string, options: StoreOptions = {}
       await pool.query(SCHEMA);
     },
     async list() {
-      const result = await pool.query<Row>('SELECT id, name, message, created_at FROM entries ORDER BY id ASC');
+      const result = await pool.query<Row>('SELECT id, name, message, created_at FROM entries ORDER BY id DESC');
       return result.rows.map(toEntry);
     },
     async add(name, message) {
