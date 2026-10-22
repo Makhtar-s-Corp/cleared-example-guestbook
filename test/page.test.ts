@@ -34,6 +34,11 @@ test('the page has a form that posts to /entries', () => {
   assert.ok(html.includes('No entries yet.'));
 });
 
+test('the page ends with a footer that thanks the visitor', () => {
+  const html = renderPage([entry(1, 'Ada', 'first')]);
+  assert.match(html, /<\/form>\n  <footer><p>Thank you for visiting\.<\/p><\/footer>\n<\/body>/);
+});
+
 test('a notice is shown as a status, escaped, with an empty form', () => {
   const html = renderPage([], { notice: 'Your entry waits for review: the filter flagged <spam>.' });
   assert.ok(html.includes('<p role="status">Your entry waits for review: the filter flagged &lt;spam&gt;.</p>'));
