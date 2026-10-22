@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { escapeHtml, renderPage } from '../src/page.ts';
+import { escapeHtml, relativeTime, renderPage } from '../src/page.ts';
 import type { Entry } from '../src/store.ts';
 
 const at = new Date('2026-10-21T10:00:00Z');
@@ -17,6 +17,30 @@ test('the page lists the entries in the order it is given, escaped', () => {
   assert.ok(html.includes('x &lt; y &amp; &quot;z&quot;'));
   assert.ok(!html.includes('<b>Bob</b>'));
   assert.ok(html.includes('datetime="2026-10-21T10:00:00.000Z"'));
+});
+
+test('relativeTime says how long ago an entry was written', () => {
+  const now = new Date('2026-10-22T09:30:00Z');
+  const ago = (iso: string) => relativeTime(new Date(iso), now);
+  assert.equal(ago('2026-10-22T09:29:30Z'), "à l'instant");
+  assert.equal(ago('2026-10-22T09:31:00Z'), "à l'instant");
+  assert.equal(ago('2026-10-22T09:27:00Z'), 'il y a 3 min');
+  assert.equal(ago('2026-10-22T08:30:01Z'), 'il y a 59 min');
+  assert.equal(ago('2026-10-22T08:30:00Z'), 'il y a 1 h');
+  assert.equal(ago('2026-10-21T23:00:00Z'), 'il y a 10 h');
+  assert.equal(ago('2026-10-21T09:30:00Z'), 'hier');
+  assert.equal(ago('2026-10-21T00:00:00Z'), 'hier');
+  assert.equal(ago('2026-10-20T23:59:00Z'), 'il y a 2 jours');
+  assert.equal(ago('2026-09-22T12:00:00Z'), 'il y a 30 jours');
+  assert.equal(ago('2026-09-21T12:00:00Z'), 'le 2026-09-21');
+});
+
+test('the page shows the relative date under each entry', () => {
+  const now = new Date('2026-10-21T10:03:00Z');
+  const yesterday: Entry = { id: 1, name: 'Ada', message: 'first', createdAt: new Date('2026-10-20T08:00:00Z') };
+  const html = renderPage([entry(2, 'Bob', 'second'), yesterday], {}, now);
+  assert.ok(html.includes('<p>second</p>\n      <p class="ago"><time datetime="2026-10-21T10:00:00.000Z">il y a 3 min</time></p>'));
+  assert.ok(html.includes('<p>first</p>\n      <p class="ago"><time datetime="2026-10-20T08:00:00.000Z">hier</time></p>'));
 });
 
 test('the heading counts the entries', () => {

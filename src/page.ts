@@ -17,16 +17,36 @@ export function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (char) => ESCAPES[char] ?? char);
 }
 
-function renderEntry(entry: Entry): string {
+const MINUTE = 60_000;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+
+// How long ago `then` was, seen from `now`: minutes, then hours, then "hier"
+// and days counted on UTC calendar days, the server knowing no visitor's
+// timezone. A date in the future counts as now.
+export function relativeTime(then: Date, now: Date): string {
+  const elapsed = now.getTime() - then.getTime();
+  if (elapsed < MINUTE) return "à l'instant";
+  if (elapsed < HOUR) return `il y a ${Math.floor(elapsed / MINUTE)} min`;
+  if (elapsed < DAY) return `il y a ${Math.floor(elapsed / HOUR)} h`;
+  const days = Math.round((Date.parse(now.toISOString().slice(0, 10)) - Date.parse(then.toISOString().slice(0, 10))) / DAY);
+  if (days === 1) return 'hier';
+  if (days <= 30) return `il y a ${days} jours`;
+  return `le ${then.toISOString().slice(0, 10)}`;
+}
+
+function renderEntry(entry: Entry, now: Date): string {
   const at = entry.createdAt.toISOString();
   return `    <li>
       <p class="meta"><strong>${escapeHtml(entry.name)}</strong> <time datetime="${at}">${at.slice(0, 16).replace('T', ' ')} UTC</time></p>
       <p>${escapeHtml(entry.message)}</p>
+      <p class="ago"><time datetime="${at}">${escapeHtml(relativeTime(entry.createdAt, now))}</time></p>
     </li>`;
 }
 
-export function renderPage(entries: readonly Entry[], form: FormState = {}): string {
-  const list = entries.length === 0 ? '  <p>No entries yet.</p>' : `  <ol>\n${entries.map(renderEntry).join('\n')}\n  </ol>`;
+export function renderPage(entries: readonly Entry[], form: FormState = {}, now: Date = new Date()): string {
+  const list =
+    entries.length === 0 ? '  <p>No entries yet.</p>' : `  <ol>\n${entries.map((entry) => renderEntry(entry, now)).join('\n')}\n  </ol>`;
   const error = form.error ? `\n    <p role="alert">${escapeHtml(form.error)}</p>` : '';
   const notice = form.notice ? `\n    <p role="status">${escapeHtml(form.notice)}</p>` : '';
   return `<!doctype html>
@@ -40,7 +60,7 @@ export function renderPage(entries: readonly Entry[], form: FormState = {}): str
     ol { list-style: none; padding: 0; }
     li { border-bottom: 1px solid #ddd; padding: 0.5rem 0; }
     li p { margin: 0.25rem 0; overflow-wrap: anywhere; }
-    .meta { color: #555; font-size: 0.875rem; }
+    .meta, .ago { color: #555; font-size: 0.875rem; }
     label { display: block; margin-top: 0.75rem; }
     input, textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 0.4rem; }
     button { margin-top: 0.75rem; font: inherit; padding: 0.4rem 1rem; }
