@@ -18,7 +18,7 @@ export const RESERVED_PORTS: ReadonlySet<number> = new Set([80, 443, 8787, 8788,
 // tickets"): its second ticket sets this to true in a change of its own, so
 // /health answers 503 once that change is deployed and the release watch
 // rolls the guestbook back. PROOF_BREAK_HEALTH=1 turns it on by hand.
-export const PROOF_BREAK_HEALTH: boolean = true;
+export const PROOF_BREAK_HEALTH: boolean = false;
 
 export type Config = {
   readonly host: string;
