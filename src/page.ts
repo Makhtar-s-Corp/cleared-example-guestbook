@@ -49,6 +49,7 @@ export function renderPage(entries: readonly Entry[], form: FormState = {}): str
 </head>
 <body>
   <h1>Guestbook (${entries.length} ${entries.length === 1 ? 'entry' : 'entries'})</h1>
+  <p>Leave a word for the next visitor.</p>
 ${list}
   <h2>Sign the guestbook</h2>
   <form method="post" action="/entries">${error}${notice}

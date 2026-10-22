@@ -26,6 +26,12 @@ test('the heading counts the entries', () => {
   assert.equal(heading([entry(3, 'Cy', 'third'), entry(2, 'Bob', 'second'), entry(1, 'Ada', 'first')]), 'Guestbook (3 entries)');
 });
 
+test('the page invites the visitor to sign, right under the heading', () => {
+  for (const entries of [[], [entry(1, 'Ada', 'first')]]) {
+    assert.match(renderPage(entries), /<\/h1>\n  <p>Leave a word for the next visitor\.<\/p>\n/);
+  }
+});
+
 test('the page has a form that posts to /entries', () => {
   const html = renderPage([]);
   assert.match(html, /<form method="post" action="\/entries">/);
