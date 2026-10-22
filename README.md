@@ -30,7 +30,7 @@ The guestbook consumes the filter API (`examples/filter-api/` in the Cleared rep
 
 ## The proof's switch: `PROOF_BREAK_HEALTH`
 
-`PROOF_BREAK_HEALTH` in `src/config.ts` is `false` as committed. The multi-service proof's second ticket sets it to `true` in a change of its own: once that change is deployed, `/health` answers 503 and the release watch rolls the guestbook back. `PROOF_BREAK_HEALTH=1` in the environment turns it on by hand. Nothing else changes: the page and the form still work.
+`PROOF_BREAK_HEALTH` in `src/config.ts` is `true` as committed: the multi-service proof's second ticket (LOCAL-12) set it, in a change of its own, as the proof's provoked failure. Once that change is deployed, `/health` answers `503 {"status":"broken","reason":"PROOF_BREAK_HEALTH"}` and the release watch rolls the guestbook back. While it is `true`, the environment cannot turn it off: `PROOF_BREAK_HEALTH=0` changes nothing, and only a code change sets it back to `false`. With it `false`, `PROOF_BREAK_HEALTH=1` in the environment turns it on by hand. Nothing else changes: the page and the form still work.
 
 ## Tests
 

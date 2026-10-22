@@ -76,7 +76,7 @@ test('with a filter, an entry it flags for review is held with its words: 202, t
     const response = await fetch(`${base}/entries`, form({ name: 'Mallory', message: 'Cheap SPAM, no scam' }));
     assert.equal(response.status, 202);
     const page = await response.text();
-    assert.match(page, /<p role="status">Your entry waits for review: the filter flagged spam, scam\.<\/p>/);
+    assert.match(page, /<p role="status">Your entry waits for review: the filter flagged <strong>spam<\/strong>, <strong>scam<\/strong>\.<\/p>/);
     assert.doesNotMatch(page, /<p role="alert">/);
     assert.doesNotMatch(page, /Cheap SPAM/);
     assert.doesNotMatch(await (await fetch(`${base}/`)).text(), /Cheap SPAM/);
@@ -86,6 +86,19 @@ test('with a filter, an entry it flags for review is held with its words: 202, t
   assert.equal(held?.name, 'Mallory');
   assert.equal(held?.message, 'Cheap SPAM, no scam');
   assert.deepEqual(held?.heldWords, ['spam', 'scam']);
+});
+
+test('with a filter that lists casino, "Casino" is held and shown in bold as the filter answers it', async () => {
+  const casino = await fakeFilter(['casino']);
+  try {
+    await withApp({ filter: createFilter(casino.url) }, async (base) => {
+      const response = await fetch(`${base}/entries`, form({ name: 'Mallory', message: 'Visit my Casino' }));
+      assert.equal(response.status, 202);
+      assert.match(await response.text(), /<p role="status">Your entry waits for review: the filter flagged <strong>casino<\/strong>\.<\/p>/);
+    });
+  } finally {
+    await casino.close();
+  }
 });
 
 test('with a filter that answers no severity (older than it), ok decides: false holds, true stores', async () => {
