@@ -1,11 +1,17 @@
 // The guestbook's client of the filter API (its contract/openapi.yaml):
-// POST /check with {"text"} answers {"ok", "words"}. Any other answer, an
-// error or no answer within the timeout is a FilterError, so the caller
-// never stores an entry the filter has not checked.
+// POST /check with {"text"} answers {"ok", "words", "severity"}. Any other
+// answer, an error or no answer within the timeout is a FilterError, so the
+// caller never stores an entry the filter has not checked. An answer without
+// "severity" (a filter API older than it) falls back to "ok": true is none,
+// false is review.
+
+export type Severity = 'none' | 'review';
 
 export type FilterVerdict = {
   readonly ok: boolean;
   readonly words: readonly string[];
+  // none: the entry is shown; review: it is held until someone reviews it.
+  readonly severity: Severity;
 };
 
 export interface Filter {
@@ -23,10 +29,12 @@ export type FilterOptions = {
 
 function verdict(body: unknown): FilterVerdict {
   if (typeof body !== 'object' || body === null || Array.isArray(body)) throw new FilterError('the answer is not an object');
-  const { ok, words } = body as { ok?: unknown; words?: unknown };
+  const { ok, words, severity } = body as { ok?: unknown; words?: unknown; severity?: unknown };
   if (typeof ok !== 'boolean') throw new FilterError('the answer has no boolean "ok"');
   if (!Array.isArray(words) || !words.every((word) => typeof word === 'string')) throw new FilterError('the answer has no "words" list of strings');
-  return { ok, words };
+  if (severity === undefined) return { ok, words, severity: ok ? 'none' : 'review' };
+  if (severity !== 'none' && severity !== 'review') throw new FilterError('the answer\'s "severity" is neither "none" nor "review"');
+  return { ok, words, severity };
 }
 
 export function createFilter(baseUrl: string, options: FilterOptions = {}): Filter {
