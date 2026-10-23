@@ -5,8 +5,11 @@ export const LIMITS = { name: 80, message: 500 } as const;
 
 export type FormState = {
   readonly error?: string;
-  // What happened to the entry just sent, when it is not an error.
+  // What happened to the entry just sent, when it is not an error: a
+  // sentence without its final period, which the page adds.
   readonly notice?: string;
+  // The words the filter flagged, each shown in bold after the notice.
+  readonly flagged?: readonly string[];
   readonly name?: string;
   readonly message?: string;
 };
@@ -28,7 +31,8 @@ function renderEntry(entry: Entry): string {
 export function renderPage(entries: readonly Entry[], form: FormState = {}): string {
   const list = entries.length === 0 ? '  <p>No entries yet.</p>' : `  <ol>\n${entries.map(renderEntry).join('\n')}\n  </ol>`;
   const error = form.error ? `\n    <p role="alert">${escapeHtml(form.error)}</p>` : '';
-  const notice = form.notice ? `\n    <p role="status">${escapeHtml(form.notice)}</p>` : '';
+  const flagged = form.flagged?.length ? `: the filter flagged ${form.flagged.map((word) => `<strong>${escapeHtml(word)}</strong>`).join(', ')}` : '';
+  const notice = form.notice ? `\n    <p role="status">${escapeHtml(form.notice)}${flagged}.</p>` : '';
   return `<!doctype html>
 <html lang="en">
 <head>
