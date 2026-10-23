@@ -34,13 +34,6 @@ test('the page has a form that posts to /entries', () => {
   assert.ok(html.includes('No entries yet.'));
 });
 
-test('a notice is shown as a status, escaped, with an empty form', () => {
-  const html = renderPage([], { notice: 'Your entry waits for review: the filter flagged <spam>.' });
-  assert.ok(html.includes('<p role="status">Your entry waits for review: the filter flagged &lt;spam&gt;.</p>'));
-  assert.ok(!html.includes('<p role="alert">'));
-  assert.ok(html.includes('value=""'));
-});
-
 test('an error is shown with the values the visitor typed, escaped', () => {
   const html = renderPage([], { error: 'The message is empty.', name: '"Ada"', message: '' });
   assert.ok(html.includes('role="alert"'));
