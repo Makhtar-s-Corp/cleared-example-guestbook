@@ -1,12 +1,13 @@
 name: checks
 
 # The guestbook's tests against a Postgres service container, on every pull
-# request to main and every push to it.
+# request to main or to proof-run (the multi-service proof's run branch) and
+# every push to either.
 on:
   push:
-    branches: [main]
+    branches: [main, proof-run]
   pull_request:
-    branches: [main]
+    branches: [main, proof-run]
 
 concurrency:
   group: checks-${{ github.ref }}
