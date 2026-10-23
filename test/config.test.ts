@@ -5,13 +5,13 @@ import { ConfigError, DEFAULT_HOST, DEFAULT_PORT, PROOF_BREAK_HEALTH, readConfig
 const url = 'postgres://postgres@127.0.0.1:5432/postgres';
 
 test('defaults: this machine only, port 8793', () => {
-  assert.deepEqual(readConfig({ DATABASE_URL: url }), { host: DEFAULT_HOST, port: DEFAULT_PORT, databaseUrl: url, breakHealth: false });
+  assert.deepEqual(readConfig({ DATABASE_URL: url }), { host: DEFAULT_HOST, port: DEFAULT_PORT, databaseUrl: url, breakHealth: true });
   assert.equal(DEFAULT_HOST, '127.0.0.1');
   assert.equal(DEFAULT_PORT, 8793);
 });
 
 test('HOST and PORT override the defaults', () => {
-  assert.deepEqual(readConfig({ DATABASE_URL: url, HOST: '0.0.0.0', PORT: '9100' }), { host: '0.0.0.0', port: 9100, databaseUrl: url, breakHealth: false });
+  assert.deepEqual(readConfig({ DATABASE_URL: url, HOST: '0.0.0.0', PORT: '9100' }), { host: '0.0.0.0', port: 9100, databaseUrl: url, breakHealth: true });
 });
 
 test('DATABASE_URL is required', () => {
@@ -37,8 +37,9 @@ test('FILTER_URL names the filter API: http or https, with no credentials, its t
   }
 });
 
-test('PROOF_BREAK_HEALTH is off as committed, and PROOF_BREAK_HEALTH=1 turns it on', () => {
-  assert.equal(PROOF_BREAK_HEALTH, false, 'only the proof\'s second ticket turns it on, in a change of its own');
+test('PROOF_BREAK_HEALTH is on as committed, by the proof\'s second ticket: the environment cannot turn it off', () => {
+  assert.equal(PROOF_BREAK_HEALTH, true, 'the proof\'s second ticket turns it on, so its release is rolled back');
+  assert.equal(readConfig({ DATABASE_URL: url }).breakHealth, true);
   assert.equal(readConfig({ DATABASE_URL: url, PROOF_BREAK_HEALTH: '1' }).breakHealth, true);
-  assert.equal(readConfig({ DATABASE_URL: url, PROOF_BREAK_HEALTH: '0' }).breakHealth, false);
+  assert.equal(readConfig({ DATABASE_URL: url, PROOF_BREAK_HEALTH: '0' }).breakHealth, true);
 });
