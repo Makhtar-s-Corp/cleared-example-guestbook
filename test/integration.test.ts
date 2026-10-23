@@ -9,6 +9,7 @@ import type { Server } from 'node:http';
 import { createApp } from '../src/server.ts';
 import { createFilter } from '../src/filter.ts';
 import { parseFilterUrl } from '../src/config.ts';
+import { escapeHtml } from '../src/page.ts';
 import { testDatabase, type TestDatabase } from './helpers/db.ts';
 
 const rawFilterUrl = process.env.FILTER_URL?.trim();
@@ -72,6 +73,23 @@ test('with the filter API, a flagged entry is held: 202, the visitor told, off t
   const held = (await db!.store.listHeld()).at(0);
   assert.equal(held?.message, FLAGGED);
   assert.deepEqual(held?.heldWords, words);
+});
+
+test('the filter API flags a text holding "Casino", whatever its case', { skip }, async () => {
+  const verdict = (await check('Best Casino in town')) as { ok: boolean; words: string[]; severity: string };
+  assert.equal(verdict.ok, false);
+  assert.ok(verdict.words.some((word) => word.toLowerCase() === 'casino'), `"casino" not among ${JSON.stringify(verdict.words)}`);
+  assert.equal(verdict.severity, 'review');
+});
+
+test('with the filter API, the notice of a held entry shows each flagged word in <strong>', { skip }, async () => {
+  const message = 'Casino and cheap spam';
+  const { words } = (await check(`Mallory\n${message}`)) as { words: string[] };
+  assert.ok(words.length > 1);
+  const response = await fetch(`${base}/entries`, form({ name: 'Mallory', message }));
+  assert.equal(response.status, 202);
+  const page = await response.text();
+  for (const word of words) assert.ok(page.includes(`<strong>${escapeHtml(word)}</strong>`), `"${word}" is not in bold`);
 });
 
 test('with the filter API, a clean entry is stored and shown', { skip }, async () => {
