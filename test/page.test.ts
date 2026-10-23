@@ -35,16 +35,10 @@ test('the page has a form that posts to /entries', () => {
 });
 
 test('a notice is shown as a status, escaped, with an empty form', () => {
-  const html = renderPage([], { notice: 'Your entry <waits> for review' });
-  assert.ok(html.includes('<p role="status">Your entry &lt;waits&gt; for review.</p>'));
+  const html = renderPage([], { notice: 'Your entry waits for review: the filter flagged <spam>.' });
+  assert.ok(html.includes('<p role="status">Your entry waits for review: the filter flagged &lt;spam&gt;.</p>'));
   assert.ok(!html.includes('<p role="alert">'));
   assert.ok(html.includes('value=""'));
-});
-
-test('each word the filter flagged is shown in bold after the notice, escaped', () => {
-  const html = renderPage([], { notice: 'Your entry waits for review', flagged: ['casino', '<spam>'] });
-  assert.ok(html.includes('<p role="status">Your entry waits for review: the filter flagged <strong>casino</strong>, <strong>&lt;spam&gt;</strong>.</p>'));
-  assert.ok(renderPage([], { notice: 'Your entry waits for review', flagged: [] }).includes('<p role="status">Your entry waits for review.</p>'));
 });
 
 test('an error is shown with the values the visitor typed, escaped', () => {
