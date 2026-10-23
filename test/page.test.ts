@@ -19,11 +19,10 @@ test('the page lists the entries in the order it is given, escaped', () => {
   assert.ok(html.includes('datetime="2026-10-21T10:00:00.000Z"'));
 });
 
-test('the heading counts the entries', () => {
+test('the heading is the title alone: the count is said once, above the list', () => {
   const heading = (entries: readonly Entry[]) => renderPage(entries).match(/<h1>(.*)<\/h1>/)?.[1];
-  assert.equal(heading([]), 'Guestbook (0 entries)');
-  assert.equal(heading([entry(1, 'Ada', 'first')]), 'Guestbook (1 entry)');
-  assert.equal(heading([entry(3, 'Cy', 'third'), entry(2, 'Bob', 'second'), entry(1, 'Ada', 'first')]), 'Guestbook (3 entries)');
+  assert.equal(heading([]), 'Guestbook');
+  assert.equal(heading([entry(1, 'Ada', 'first')]), 'Guestbook');
 });
 
 test('the page has a form that posts to /entries', () => {

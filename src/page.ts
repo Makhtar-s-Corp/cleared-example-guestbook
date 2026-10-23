@@ -1,4 +1,3 @@
-// The owner changed this line in the Editor tab (step 11).
 // The guestbook's only page: the entries, then the form to add one.
 import type { Entry } from './store.ts';
 
@@ -50,7 +49,7 @@ export function renderPage(entries: readonly Entry[], form: FormState = {}): str
   </style>
 </head>
 <body>
-  <h1>Guestbook (${entries.length} ${entries.length === 1 ? 'entry' : 'entries'})</h1>
+  <h1>Guestbook</h1>
 ${list}
   <h2>Sign the guestbook</h2>
   <form method="post" action="/entries">${error}${notice}
