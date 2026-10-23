@@ -1,6 +1,7 @@
 // The guestbook's routes, on node:http:
 //   GET  /         the page
-//   POST /entries  adds an entry from a form, then back to / (303)
+//   POST /entries  adds an entry from a form, then back to / (303); one the
+//                  filter flags for review is held: 202 and the page saying so
 //   GET  /health   200 {"status":"ok"} while the database answers, else 503
 // With a filter (FILTER_URL), an entry is checked by the filter API before
 // it is stored; /health still checks the database only, so a filter that is
@@ -107,8 +108,11 @@ async function addEntry(store: Store, options: AppOptions, request: IncomingMess
       await page(store, response, 503, { error: 'The filter did not answer. Try again in a moment.', name, message });
       return;
     }
-    if (!verdict.ok) {
-      await page(store, response, 400, { error: `The entry holds words the filter refuses: ${verdict.words.join(', ')}.`, name, message });
+    if (verdict.severity === 'review') {
+      // Held, not refused: the entry is kept off the page until it is reviewed.
+      await store.add(name, message, verdict.words);
+      const flagged = verdict.words.length > 0 ? `: the filter flagged ${verdict.words.join(', ')}` : '';
+      await page(store, response, 202, { notice: `Your entry waits for review${flagged}.` });
       return;
     }
   }
