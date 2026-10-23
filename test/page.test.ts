@@ -31,7 +31,16 @@ test('the page has a form that posts to /entries', () => {
   assert.match(html, /<form method="post" action="\/entries">/);
   assert.match(html, /name="name"/);
   assert.match(html, /name="message"/);
-  assert.ok(html.includes('No entries yet.'));
+  assert.ok(html.includes('<p class="count">No entry yet</p>'));
+});
+
+test('the count above the list says how many entries the guestbook holds', () => {
+  const count = (entries: readonly Entry[]) => renderPage(entries).match(/<p class="count">(.*)<\/p>/)?.[1];
+  assert.equal(count([]), 'No entry yet');
+  assert.equal(count([entry(1, 'Ada', 'first')]), '1 entry');
+  assert.equal(count([entry(3, 'Cy', 'third'), entry(2, 'Bob', 'second'), entry(1, 'Ada', 'first')]), '3 entries');
+  const html = renderPage([entry(1, 'Ada', 'first')]);
+  assert.ok(html.indexOf('<p class="count">') < html.indexOf('<ol>'));
 });
 
 test('a notice is shown as a status, escaped, with an empty form', () => {
