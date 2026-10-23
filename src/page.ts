@@ -26,7 +26,8 @@ function renderEntry(entry: Entry): string {
 }
 
 export function renderPage(entries: readonly Entry[], form: FormState = {}): string {
-  const list = entries.length === 0 ? '  <p>No entries yet.</p>' : `  <ol>\n${entries.map(renderEntry).join('\n')}\n  </ol>`;
+  const count = entries.length === 0 ? 'No entry yet' : `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`;
+  const list = `  <p class="count">${count}</p>` + (entries.length === 0 ? '' : `\n  <ol>\n${entries.map(renderEntry).join('\n')}\n  </ol>`);
   const error = form.error ? `\n    <p role="alert">${escapeHtml(form.error)}</p>` : '';
   const notice = form.notice ? `\n    <p role="status">${escapeHtml(form.notice)}</p>` : '';
   return `<!doctype html>
@@ -48,7 +49,7 @@ export function renderPage(entries: readonly Entry[], form: FormState = {}): str
   </style>
 </head>
 <body>
-  <h1>Guestbook (${entries.length} ${entries.length === 1 ? 'entry' : 'entries'})</h1>
+  <h1>Guestbook</h1>
 ${list}
   <h2>Sign the guestbook</h2>
   <form method="post" action="/entries">${error}${notice}
