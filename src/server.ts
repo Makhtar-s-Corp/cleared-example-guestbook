@@ -111,8 +111,7 @@ async function addEntry(store: Store, options: AppOptions, request: IncomingMess
     if (verdict.severity === 'review') {
       // Held, not refused: the entry is kept off the page until it is reviewed.
       await store.add(name, message, verdict.words);
-      const flagged = verdict.words.length > 0 ? `: the filter flagged ${verdict.words.join(', ')}` : '';
-      await page(store, response, 202, { notice: `Your entry waits for review${flagged}.` });
+      await page(store, response, 202, { notice: 'Your entry waits for review', flagged: verdict.words });
       return;
     }
   }

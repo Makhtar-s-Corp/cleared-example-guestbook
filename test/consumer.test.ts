@@ -76,7 +76,7 @@ test('with a filter, an entry it flags for review is held with its words: 202, t
     const response = await fetch(`${base}/entries`, form({ name: 'Mallory', message: 'Cheap SPAM, no scam' }));
     assert.equal(response.status, 202);
     const page = await response.text();
-    assert.match(page, /<p role="status">Your entry waits for review: the filter flagged spam, scam\.<\/p>/);
+    assert.match(page, /<p role="status">Your entry waits for review: the filter flagged <strong>spam<\/strong>, <strong>scam<\/strong>\.<\/p>/);
     assert.doesNotMatch(page, /<p role="alert">/);
     assert.doesNotMatch(page, /Cheap SPAM/);
     assert.doesNotMatch(await (await fetch(`${base}/`)).text(), /Cheap SPAM/);
