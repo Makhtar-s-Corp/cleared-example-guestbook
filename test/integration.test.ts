@@ -74,6 +74,16 @@ test('with the filter API, a flagged entry is held: 202, the visitor told, off t
   assert.deepEqual(held?.heldWords, words);
 });
 
+test('the filter API flags "Casino", and the guestbook\'s review notice shows it in bold (LOCAL-30)', { skip }, async () => {
+  const verdict = (await check('Casino night')) as { ok: boolean; words: string[]; severity: string };
+  assert.equal(verdict.ok, false);
+  assert.deepEqual(verdict.words, ['casino']);
+  assert.equal(verdict.severity, 'review');
+  const response = await fetch(`${base}/entries`, form({ name: 'Eve', message: 'Casino night' }));
+  assert.equal(response.status, 202);
+  assert.match(await response.text(), /<p role="status">Your entry waits for review: the filter flagged <strong>casino<\/strong>\.<\/p>/);
+});
+
 test('with the filter API, a clean entry is stored and shown', { skip }, async () => {
   const response = await fetch(`${base}/entries`, form({ name: 'Grace', message: CLEAN }));
   assert.equal(response.status, 303);
