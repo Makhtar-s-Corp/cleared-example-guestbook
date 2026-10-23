@@ -10,10 +10,10 @@ A web page that lists guestbook entries and adds one, on Postgres. Cleared v2's 
 | Route | What it does |
 | --- | --- |
 | `GET /` | The page: the entries, newest first, then the form. |
-| `POST /entries` | Adds an entry from the form (`name` up to 80 characters, `message` up to 500). Answers 303 to `/` when stored, or 400 with the page and the error when a field is empty or too long. Answers 415 for a body that is not a form, and 413 for a body over 16 KiB. With a filter (`FILTER_URL`), the entry is checked first: one it flags for review is stored as held, left off the page, and answered 202 with the page saying the entry waits for review and naming the flagged words; when the filter fails or takes more than 2 seconds the entry is 503 and not stored. |
+| `POST /entries` | Adds an entry from the form (`name` up to 80 characters, `message` up to 500). Answers 303 to `/` when stored, or 400 with the page and the error when a field is empty or too long. Answers 415 for a body that is not a form, and 413 for a body over 16 KiB. With a filter (`FILTER_URL`), the entry is checked first: one it refuses is 400 with the words it names, and when the filter fails or takes more than 2 seconds the entry is 503 and not stored. |
 | `GET /health` | `200 {"status":"ok"}` while the database answers within 2 seconds, else `503 {"status":"unavailable"}`. It never calls the filter. With `PROOF_BREAK_HEALTH` on, `503 {"status":"broken","reason":"PROOF_BREAK_HEALTH"}`. |
 
-One table, `entries (id, name, message, created_at, held, held_words)`, which the app creates if it is missing when it starts, adding `held` and `held_words` to a table made before them. A held entry is one the filter flagged for review: it is not shown, and `held_words` keeps the words it was held for.
+One table, `entries (id, name, message, created_at)`, which the app creates if it is missing when it starts.
 
 ## Run it
 
@@ -26,7 +26,7 @@ DATABASE_URL=postgres://postgres@127.0.0.1:5432/postgres npm start
 
 ## The filter API, when `FILTER_URL` is set
 
-The guestbook consumes the filter API (`examples/filter-api/` in the Cleared repository, its own repository for the demo): with `FILTER_URL` set to its address, for example `http://127.0.0.1:8795`, every entry is sent to its `POST /check` as `{"text": "<name>\n<message>"}` before it is stored. Unset, the filter is never called, as before. An answer whose `severity` is `review` holds the entry, stored with the flagged `words`; `none` stores it as shown. An answer without `severity`, from a filter API older than it, falls back to `ok`: `false` holds the entry, `true` stores it as shown, so the guestbook can go live before the filter API. Nothing is stored unchecked: a filter that answers anything but its contract's `200 {"ok", "words", "severity"}` (or `{"ok", "words"}`), or nothing within 2 seconds, makes the entry a 503 with the form kept. `FILTER_URL` is an http or https address with no credentials, no query and no fragment. The deploy watcher passes no `FILTER_URL` to the app it runs.
+The guestbook consumes the filter API (`examples/filter-api/` in the Cleared repository, its own repository for the demo): with `FILTER_URL` set to its address, for example `http://127.0.0.1:8795`, every entry is sent to its `POST /check` as `{"text": "<name>\n<message>"}` before it is stored. Unset, the filter is never called, as before. Nothing is stored unchecked: a filter that answers anything but its contract's `200 {"ok", "words"}`, or nothing within 2 seconds, makes the entry a 503 with the form kept. `FILTER_URL` is an http or https address with no credentials, no query and no fragment. The deploy watcher passes no `FILTER_URL` to the app it runs.
 
 ## The proof's switch: `PROOF_BREAK_HEALTH`
 

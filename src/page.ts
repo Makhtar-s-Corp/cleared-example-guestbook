@@ -5,8 +5,6 @@ export const LIMITS = { name: 80, message: 500 } as const;
 
 export type FormState = {
   readonly error?: string;
-  // What happened to the entry just sent, when it is not an error.
-  readonly notice?: string;
   readonly name?: string;
   readonly message?: string;
 };
@@ -28,7 +26,6 @@ function renderEntry(entry: Entry): string {
 export function renderPage(entries: readonly Entry[], form: FormState = {}): string {
   const list = entries.length === 0 ? '  <p>No entries yet.</p>' : `  <ol>\n${entries.map(renderEntry).join('\n')}\n  </ol>`;
   const error = form.error ? `\n    <p role="alert">${escapeHtml(form.error)}</p>` : '';
-  const notice = form.notice ? `\n    <p role="status">${escapeHtml(form.notice)}</p>` : '';
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -51,7 +48,7 @@ export function renderPage(entries: readonly Entry[], form: FormState = {}): str
   <h1>Guestbook (${entries.length} ${entries.length === 1 ? 'entry' : 'entries'})</h1>
 ${list}
   <h2>Sign the guestbook</h2>
-  <form method="post" action="/entries">${error}${notice}
+  <form method="post" action="/entries">${error}
     <label for="name">Name</label>
     <input id="name" name="name" maxlength="${LIMITS.name}" required value="${escapeHtml(form.name ?? '')}">
     <label for="message">Message</label>

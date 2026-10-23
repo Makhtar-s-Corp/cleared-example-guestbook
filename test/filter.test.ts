@@ -9,31 +9,9 @@ test('check posts the text as JSON to /check and gives back the verdict', async 
   const fake = await fakeFilter();
   try {
     const filter = createFilter(fake.url);
-    assert.deepEqual(await filter.check('Lovely guestbook'), { ok: true, words: [], severity: 'none' });
-    assert.deepEqual(await filter.check('Some spam, a scam'), { ok: false, words: ['spam', 'scam'], severity: 'review' });
+    assert.deepEqual(await filter.check('Lovely guestbook'), { ok: true, words: [] });
+    assert.deepEqual(await filter.check('Some spam, a scam'), { ok: false, words: ['spam', 'scam'] });
     assert.deepEqual(fake.calls, ['Lovely guestbook', 'Some spam, a scam']);
-  } finally {
-    await fake.close();
-  }
-});
-
-test('an answer without severity, from a filter API older than it, falls back to ok', async () => {
-  const fake = await fakeFilter();
-  try {
-    fake.answer = 'old-contract';
-    const filter = createFilter(fake.url);
-    assert.deepEqual(await filter.check('Lovely guestbook'), { ok: true, words: [], severity: 'none' });
-    assert.deepEqual(await filter.check('Some spam'), { ok: false, words: ['spam'], severity: 'review' });
-  } finally {
-    await fake.close();
-  }
-});
-
-test('the severity answered is kept as it is', async () => {
-  const fake = await fakeFilter();
-  try {
-    fake.answer = '{"ok":true,"words":[],"severity":"review"}';
-    assert.deepEqual(await createFilter(fake.url).check('text'), { ok: true, words: [], severity: 'review' });
   } finally {
     await fake.close();
   }
@@ -43,7 +21,7 @@ test('an answer that is not 200, or not the contract\'s shape, is a FilterError'
   const fake = await fakeFilter();
   try {
     const filter = createFilter(fake.url);
-    for (const answer of [500, 404, 'not json', '{"ok":true}', '{"ok":"yes","words":[]}', '{"ok":false,"words":[3]}', '[]', '{"ok":false,"words":[],"severity":"high"}', '{"ok":true,"words":[],"severity":null}']) {
+    for (const answer of [500, 404, 'not json', '{"ok":true}', '{"ok":"yes","words":[]}', '{"ok":false,"words":[3]}', '[]']) {
       fake.answer = answer;
       await assert.rejects(filter.check('text'), FilterError, String(answer));
     }
