@@ -88,19 +88,22 @@ test('with a filter, an entry it flags for review is held with its words: 202, t
   assert.deepEqual(held?.heldWords, ['spam', 'scam']);
 });
 
-test('with a filter that answers no severity (older than it), ok decides: false holds, true stores', async () => {
-  fake.answer = 'old-contract';
+test('with a filter that answers no severity, or one that disagrees with ok, the entry is 503 and not stored', async () => {
+  const shown = (await db.store.list()).length;
+  const held = (await db.store.listHeld()).length;
   try {
-    await withApp({ filter: createFilter(fake.url) }, async (base) => {
-      assert.equal((await fetch(`${base}/entries`, form({ name: 'Eve', message: 'old spam' }))).status, 202);
-      assert.equal((await fetch(`${base}/entries`, form({ name: 'Eve', message: 'old and fine' }))).status, 303);
-    });
+    for (const answer of ['old-contract', '{"ok":false,"words":["scam"],"severity":"none"}', '{"ok":true,"words":[],"severity":"review"}'] as const) {
+      fake.answer = answer;
+      await withApp({ filter: createFilter(fake.url) }, async (base) => {
+        assert.equal((await fetch(`${base}/entries`, form({ name: 'Eve', message: 'old spam' }))).status, 503, answer);
+        assert.equal((await fetch(`${base}/entries`, form({ name: 'Eve', message: 'old and fine' }))).status, 503, answer);
+      });
+    }
   } finally {
     fake.answer = 'contract';
   }
-  assert.equal((await db.store.listHeld()).at(0)?.message, 'old spam');
-  assert.deepEqual((await db.store.listHeld()).at(0)?.heldWords, ['spam']);
-  assert.equal((await db.store.list()).at(0)?.message, 'old and fine');
+  assert.equal((await db.store.list()).length, shown);
+  assert.equal((await db.store.listHeld()).length, held);
 });
 
 test('with a filter that fails or does not listen, the entry is 503 and not stored: nothing goes in unchecked', async () => {

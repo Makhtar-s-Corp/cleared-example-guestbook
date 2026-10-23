@@ -17,23 +17,26 @@ test('check posts the text as JSON to /check and gives back the verdict', async 
   }
 });
 
-test('an answer without severity, from a filter API older than it, falls back to ok', async () => {
+test('an answer without severity, from a filter API older than it, is a FilterError', async () => {
   const fake = await fakeFilter();
   try {
     fake.answer = 'old-contract';
     const filter = createFilter(fake.url);
-    assert.deepEqual(await filter.check('Lovely guestbook'), { ok: true, words: [], severity: 'none' });
-    assert.deepEqual(await filter.check('Some spam'), { ok: false, words: ['spam'], severity: 'review' });
+    await assert.rejects(filter.check('Lovely guestbook'), FilterError);
+    await assert.rejects(filter.check('Some spam'), FilterError);
   } finally {
     await fake.close();
   }
 });
 
-test('the severity answered is kept as it is', async () => {
+test('a severity that disagrees with ok is a FilterError', async () => {
   const fake = await fakeFilter();
   try {
-    fake.answer = '{"ok":true,"words":[],"severity":"review"}';
-    assert.deepEqual(await createFilter(fake.url).check('text'), { ok: true, words: [], severity: 'review' });
+    const filter = createFilter(fake.url);
+    for (const answer of ['{"ok":true,"words":[],"severity":"review"}', '{"ok":false,"words":["scam"],"severity":"none"}']) {
+      fake.answer = answer;
+      await assert.rejects(filter.check('text'), FilterError, answer);
+    }
   } finally {
     await fake.close();
   }

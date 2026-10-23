@@ -1,9 +1,9 @@
 // The guestbook's client of the filter API (its contract/openapi.yaml):
 // POST /check with {"text"} answers {"ok", "words", "severity"}. Any other
 // answer, an error or no answer within the timeout is a FilterError, so the
-// caller never stores an entry the filter has not checked. An answer without
-// "severity" (a filter API older than it) falls back to "ok": true is none,
-// false is review.
+// caller never stores an entry the filter has not checked. That includes an
+// answer without "severity" (a filter API older than it), and one whose
+// "severity" disagrees with "ok": none exactly when ok is true.
 
 export type Severity = 'none' | 'review';
 
@@ -32,8 +32,8 @@ function verdict(body: unknown): FilterVerdict {
   const { ok, words, severity } = body as { ok?: unknown; words?: unknown; severity?: unknown };
   if (typeof ok !== 'boolean') throw new FilterError('the answer has no boolean "ok"');
   if (!Array.isArray(words) || !words.every((word) => typeof word === 'string')) throw new FilterError('the answer has no "words" list of strings');
-  if (severity === undefined) return { ok, words, severity: ok ? 'none' : 'review' };
-  if (severity !== 'none' && severity !== 'review') throw new FilterError('the answer\'s "severity" is neither "none" nor "review"');
+  if (severity !== 'none' && severity !== 'review') throw new FilterError('the answer has no "severity" of "none" or "review"');
+  if ((severity === 'none') !== ok) throw new FilterError('the answer\'s "severity" disagrees with "ok"');
   return { ok, words, severity };
 }
 

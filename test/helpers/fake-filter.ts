@@ -1,6 +1,7 @@
 // A fake filter API for the tests: POST /check answers as the filter API's
 // contract says (ok, the listed words found, and severity), and every call is
-// kept. 'old-contract' answers as the filter API did before severity.
+// kept. 'old-contract' answers as the filter API did before severity, which
+// the guestbook refuses.
 // It listens on port 0 of 127.0.0.1, so it never takes a port in use.
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
