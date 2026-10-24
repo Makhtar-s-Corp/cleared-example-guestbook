@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { escapeHtml, renderPage } from '../src/page.ts';
+import { escapeHtml, formatDateTime, renderPage } from '../src/page.ts';
 import type { Entry } from '../src/store.ts';
 
 const at = new Date('2026-10-21T10:00:00Z');
@@ -17,6 +17,28 @@ test('the page lists the entries in the order it is given, escaped', () => {
   assert.ok(html.includes('x &lt; y &amp; &quot;z&quot;'));
   assert.ok(!html.includes('<b>Bob</b>'));
   assert.ok(html.includes('datetime="2026-10-21T10:00:00.000Z"'));
+});
+
+test('each entry shows its date and time like "23 Oct 2026, 16:54", in the server time zone', () => {
+  assert.equal(formatDateTime(new Date(2026, 9, 23, 16, 54)), '23 Oct 2026, 16:54');
+  assert.equal(formatDateTime(new Date(2026, 2, 5, 9, 7)), '5 Mar 2026, 09:07');
+  const written = new Date(2026, 9, 23, 16, 54);
+  const html = renderPage([{ id: 1, name: 'Ada', message: 'first', createdAt: written }]);
+  assert.ok(html.includes(`<time datetime="${written.toISOString()}">23 Oct 2026, 16:54</time>`));
+});
+
+test('the date and time follow the server time zone, not UTC', (t) => {
+  const zone = process.env.TZ;
+  t.after(() => {
+    if (zone === undefined) delete process.env.TZ;
+    else process.env.TZ = zone;
+  });
+  process.env.TZ = 'Asia/Tokyo';
+  // 15:30 UTC on the 23rd is 00:30 on the 24th in Tokyo (UTC+9).
+  assert.equal(formatDateTime(new Date(Date.UTC(2026, 9, 23, 15, 30))), '24 Oct 2026, 00:30');
+  assert.equal(formatDateTime(new Date(Date.UTC(2026, 9, 23, 15, 0))), '24 Oct 2026, 00:00');
+  process.env.TZ = 'UTC';
+  assert.equal(formatDateTime(new Date(Date.UTC(2026, 9, 23, 15, 30))), '23 Oct 2026, 15:30');
 });
 
 test('the heading counts the entries', () => {
