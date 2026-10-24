@@ -17,10 +17,18 @@ export function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (char) => ESCAPES[char] ?? char);
 }
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// "23 Oct 2026, 16:54", in the server's time zone.
+export function formatDateTime(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}, ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 function renderEntry(entry: Entry): string {
   const at = entry.createdAt.toISOString();
   return `    <li>
-      <p class="meta"><strong>${escapeHtml(entry.name)}</strong> <time datetime="${at}">${at.slice(0, 16).replace('T', ' ')} UTC</time></p>
+      <p class="meta"><strong>${escapeHtml(entry.name)}</strong> <time datetime="${at}">${formatDateTime(entry.createdAt)}</time></p>
       <p>${escapeHtml(entry.message)}</p>
     </li>`;
 }
