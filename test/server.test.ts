@@ -155,11 +155,34 @@ test('GET /health is 503 when the database does not answer, without hanging', as
   }
 });
 
+test('GET /entries.json lists the entries the page shows, newest first, held ones left out', async () => {
+  await fetch(`${base}/entries`, form({ name: 'Ada', message: 'First' }));
+  await fetch(`${base}/entries`, form({ name: 'Linus', message: 'Second' }));
+  await db.store.add('Mallory', 'Held back', ['casino']);
+  const response = await fetch(`${base}/entries.json`);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('content-type'), 'application/json; charset=utf-8');
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  const entries = (await response.json()) as { name: string; message: string; createdAt: string }[];
+  const shown = await db.store.list();
+  assert.deepEqual(
+    entries,
+    shown.map(({ name, message, createdAt }) => ({ name, message, createdAt: createdAt.toISOString() })),
+  );
+  assert.deepEqual(
+    entries.slice(0, 2).map((entry) => entry.message),
+    ['Second', 'First'],
+  );
+  assert.ok(!entries.some((entry) => entry.name === 'Mallory'));
+  assert.ok(!Number.isNaN(Date.parse(entries[0]?.createdAt ?? '')));
+});
+
 test('another method is 405 with Allow; another path is 404', async () => {
   const cases: [string, string, string][] = [
     ['/', 'POST', 'GET, HEAD'],
     ['/health', 'POST', 'GET, HEAD'],
     ['/entries', 'GET', 'POST'],
+    ['/entries.json', 'POST', 'GET, HEAD'],
   ];
   for (const [path, method, allow] of cases) {
     const response = await fetch(`${base}${path}`, { method, redirect: 'manual' });

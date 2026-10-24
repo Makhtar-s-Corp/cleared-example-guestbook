@@ -3,6 +3,8 @@
 //   POST /entries  adds an entry from a form, then back to / (303); one the
 //                  filter flags for review is held: 202 and the page saying so
 //   GET  /health   200 {"status":"ok"} while the database answers, else 503
+//   GET  /entries.json  the entries the page shows, newest first, as JSON
+//                  (name, message, createdAt); held ones are left out
 // With a filter (FILTER_URL), an entry is checked by the filter API before
 // it is stored; /health still checks the database only, so a filter that is
 // down never fails the guestbook's release watch.
@@ -20,7 +22,7 @@ export type AppOptions = {
 
 export const MAX_BODY_BYTES = 16 * 1024;
 
-const ROUTES: Record<string, string> = { '/': 'GET, HEAD', '/health': 'GET, HEAD', '/entries': 'POST' };
+const ROUTES: Record<string, string> = { '/': 'GET, HEAD', '/health': 'GET, HEAD', '/entries': 'POST', '/entries.json': 'GET, HEAD' };
 
 function send(response: ServerResponse, status: number, type: string, body: string, headers: Record<string, string> = {}): void {
   response.writeHead(status, {
@@ -130,6 +132,10 @@ async function route(store: Store, options: AppOptions, request: IncomingMessage
   if (path === '/health') {
     if (options.breakHealth) return sendJson(response, 503, { status: 'broken', reason: 'PROOF_BREAK_HEALTH' });
     return (await store.ping()) ? sendJson(response, 200, { status: 'ok' }) : sendJson(response, 503, { status: 'unavailable' });
+  }
+  if (path === '/entries.json') {
+    const entries = await store.list();
+    return sendJson(response, 200, entries.map(({ name, message, createdAt }) => ({ name, message, createdAt: createdAt.toISOString() })));
   }
   if (path === '/entries') return addEntry(store, options, request, response);
   return page(store, response);
