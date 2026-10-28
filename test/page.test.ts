@@ -41,6 +41,13 @@ test('a notice is shown as a status, escaped, with an empty form', () => {
   assert.ok(html.includes('value=""'));
 });
 
+test('the page ends with a footer saying the guestbook is a demo', () => {
+  const html = renderPage([entry(1, 'Ada', 'first')]);
+  assert.ok(html.includes('<footer>A demo guestbook.</footer>'));
+  assert.ok(html.indexOf('</form>') < html.indexOf('<footer>'));
+  assert.ok(html.endsWith('<footer>A demo guestbook.</footer>\n</body>\n</html>\n'));
+});
+
 test('an error is shown with the values the visitor typed, escaped', () => {
   const html = renderPage([], { error: 'The message is empty.', name: '"Ada"', message: '' });
   assert.ok(html.includes('role="alert"'));
