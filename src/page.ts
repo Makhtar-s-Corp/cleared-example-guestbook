@@ -58,6 +58,7 @@ ${list}
     <textarea id="message" name="message" maxlength="${LIMITS.message}" rows="3" required>${escapeHtml(form.message ?? '')}</textarea>
     <button type="submit">Sign</button>
   </form>
+  <footer>A demo guestbook.</footer>
 </body>
 </html>
 `;
