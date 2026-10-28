@@ -26,6 +26,11 @@ test('the heading counts the entries', () => {
   assert.equal(heading([entry(3, 'Cy', 'third'), entry(2, 'Bob', 'second'), entry(1, 'Ada', 'first')]), 'Guestbook (3 entries)');
 });
 
+test('an invite line sits right under the heading', () => {
+  const html = renderPage([entry(1, 'Ada', 'first')]);
+  assert.match(html, /<\/h1>\n  <p class="invite">Leave a word below\.<\/p>\n/);
+});
+
 test('the page has a form that posts to /entries', () => {
   const html = renderPage([]);
   assert.match(html, /<form method="post" action="\/entries">/);
